@@ -1,0 +1,14 @@
+# Lines starting with '#' are considered comments.
+.DS_Store
+.cache/
+Thumbs.db
+*.log
+
+# sbt
+target/
+
+# database files
+*.db
+
+# IntelliJ IDEA
+/.idea*

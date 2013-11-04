@@ -10,7 +10,10 @@ import sitemap._
 import Loc._
 import net.liftmodules.JQueryModule
 import net.liftweb.http.js.jquery._
-
+import net.liftmodules.FoBo
+import net.liftweb.db.{DefaultConnectionIdentifier, DB, StandardDBVendor}
+import net.liftweb.mapper.Schemifier
+import code.model.Item
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -49,10 +52,24 @@ class Boot {
     LiftRules.htmlProperties.default.set((r: Req) =>
       new Html5Properties(r.userAgent))
 
-    //Init the jQuery module, see http://liftweb.net/jquery for more information.
-    LiftRules.jsArtifacts = JQueryArtifacts
-    JQueryModule.InitParam.JQuery=JQueryModule.JQuery172
-    JQueryModule.init()
+    FoBo.InitParam.JQuery=FoBo.JQuery191
+    FoBo.InitParam.ToolKit=FoBo.Bootstrap300
+    FoBo.init()
 
+    // Init Database
+    val vendor = new StandardDBVendor(Props.get("db.driver") openOr "org.h2.Driver",
+      Props.get("db.url") openOr "jdbc:h2:lift_example.db;AUTO_SERVER=TRUE",
+      Props.get("db.user"), Props.get("db.password"))
+
+    LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
+
+    DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
+
+    // Init model
+    Schemifier.schemify(true, Schemifier.infoF _,
+      Item)
+
+    // Make a transaction span the whole HTTP request
+    S.addAround(DB.buildLoanWrapper)
   }
 }

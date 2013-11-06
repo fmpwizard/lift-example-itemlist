@@ -18,47 +18,47 @@ trait ItemList[Item] extends TypeAhead {
   def itemLink(item:Item):String
   def itemTitle(item:Item):String
 
-  var itemListXML:Box[IdMemoizeTransform] = Empty
-  var addItemFieldXML:Box[IdMemoizeTransform] = Empty
   
-  
-  def renderList = SHtml.idMemoize{ cachedXML => itemListXML = Full(cachedXML)
-    ".item" #> itemsDisplayed.map { item =>
+  def render = {
+    var itemListXML:IdMemoizeTransform = null
+
+    ".itemlist" #> SHtml.idMemoize{ cached => itemListXML = cached
+      ".item" #> itemsDisplayed.map { item =>
         ".link [href]" #> itemLink(item) &
         ".title" #> itemTitle(item) &
-        ".remove [onClick]" #> removeItemAndRefreshList(item)
+        ".remove [onClick]" #> removeItemAndRefreshList(item, itemListXML)
       }
-  }
-  def refreshList() = itemListXML.get.setHtml()
-
-  def renderAddItemField = {
-    ".add_item" #> SHtml.idMemoize{ cachedXML => addItemFieldXML = Full(cachedXML)
-      cachedXML
     } &
-      ".add_item" #> SHtml.onSubmit{ value =>
-      addItemAndRefreshList(value)
-    }
+      ".additemform" #> renderAddItemField(itemListXML)
   }
 
-  def addItemAndRefreshList(title: String) = {
+  def refreshList(itemListXML:IdMemoizeTransform) = itemListXML.setHtml()
+
+  def renderAddItemField(itemListXML:IdMemoizeTransform) = {
+    var addItemFieldXML:IdMemoizeTransform = null
+
+    ".add_item" #> SHtml.idMemoize{ cached => addItemFieldXML = cached
+      addItemFieldXML
+    } &
+    ".add_item" #> SHtml.onSubmit{ title =>
+        addItemAndRefreshList(title, addItemFieldXML, itemListXML)
+      } // &
+    //renderAutoCompleteScript(addItemFieldXML.latestId)
+  }
+
+  def addItemAndRefreshList(title: String, addItemFieldXML:IdMemoizeTransform, itemListXML:IdMemoizeTransform) = {
     if (title.trim.nonEmpty) {
       addItem(title)
 
-      SetValueAndFocus(addItemFieldXML.get.latestId, "") &
-        refreshList()
+      SetValueAndFocus(addItemFieldXML.latestId, "") &
+      refreshList(itemListXML)
     }
   }
 
-  def removeItemAndRefreshList(item: Item) = {
+  def removeItemAndRefreshList(item: Item, itemListXML:IdMemoizeTransform) = {
     SHtml.ajaxInvoke { () =>
       removeItem(item)
-      refreshList()
+      refreshList(itemListXML)
     }
-  }
-
-  def render = {
-    ".itemlist" #> renderList &
-    ".additemform" #> renderAddItemField &
-    ".additemform" #> renderAutoCompleteScript(addItemFieldXML.get.latestId)
   }
 }

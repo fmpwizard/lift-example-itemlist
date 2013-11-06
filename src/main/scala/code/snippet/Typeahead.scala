@@ -31,7 +31,7 @@ trait TypeAhead {
   val runSuggestion =
     SHtml.jsonCall(JsVar("query"), callbackContext, suggest _ )
 
-  def renderAutoCompleteScript( fieldId: => String) = {
+  def renderAutoCompleteScript( fieldId: String) = {
     S.appendJs(Run(s"""
                      |$$('#$fieldId').typeahead({
                      |  source: askServer$fieldId,

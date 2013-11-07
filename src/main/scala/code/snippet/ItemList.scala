@@ -1,12 +1,10 @@
 package code.snippet
 
-import net.liftweb.http.{IdMemoizeTransform, RequestVar, SHtml}
-import net.liftweb.http.js.JsCmds.{SetHtml, SetValueAndFocus}
+import net.liftweb.http.{IdMemoizeTransform, SHtml}
 import net.liftweb.util.Helpers._
 import java.util.UUID
 
 import net.liftweb.http.js.JsCmds._
-import net.liftweb.common._
 
 
 trait ItemList[Item] extends TypeAhead {
@@ -18,7 +16,7 @@ trait ItemList[Item] extends TypeAhead {
   def itemLink(item:Item):String
   def itemTitle(item:Item):String
 
-  
+
   def render = {
     var itemListXML:IdMemoizeTransform = null
 
@@ -35,22 +33,20 @@ trait ItemList[Item] extends TypeAhead {
   def refreshList(itemListXML:IdMemoizeTransform) = itemListXML.setHtml()
 
   def renderAddItemField(itemListXML:IdMemoizeTransform) = {
-    var addItemFieldXML:IdMemoizeTransform = null
+    val addItemFieldId = UUID.randomUUID.toString.replace('-','x')
 
-    ".add_item" #> SHtml.idMemoize{ cached => addItemFieldXML = cached
-      addItemFieldXML
-    } &
+    ".add_item [id]" #> addItemFieldId &
     ".add_item" #> SHtml.onSubmit{ title =>
-        addItemAndRefreshList(title, addItemFieldXML, itemListXML)
-      } // &
-    //renderAutoCompleteScript(addItemFieldXML.latestId)
+        addItemAndRefreshList(title, addItemFieldId, itemListXML)
+      } &
+    renderAutoCompleteScript(addItemFieldId)
   }
 
-  def addItemAndRefreshList(title: String, addItemFieldXML:IdMemoizeTransform, itemListXML:IdMemoizeTransform) = {
+  def addItemAndRefreshList(title: String, addItemFieldId:String, itemListXML:IdMemoizeTransform) = {
     if (title.trim.nonEmpty) {
       addItem(title)
 
-      SetValueAndFocus(addItemFieldXML.latestId, "") &
+      SetValueAndFocus(addItemFieldId, "") &
       refreshList(itemListXML)
     }
   }

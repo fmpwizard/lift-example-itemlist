@@ -14,7 +14,7 @@ class AllItems extends ItemList[Item] {
   def addItem(title:String) = Item.create.title(title).save
   def removeItem(item:Item) = item.delete_!
   def itemLink(item: Item): String = "#"
-  def itemTitle(item: Item): String = item.title
+  def itemTitle(item: Item): String = item.title.get
   def suggestions(typed: String): Seq[String] = Item.suggestions(typed)
 }
 

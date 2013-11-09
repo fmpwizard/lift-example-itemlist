@@ -12,14 +12,10 @@ import net.liftweb.http.js.JE.JsVar
 import net.liftweb.json.JsonAST._
 import net.liftweb.json.DefaultFormats
 
-trait TypeAhead {
-  def suggestions(typed:String):Seq[String]
-
+object TypeAhead {
   implicit val formats = DefaultFormats
 
-  val callbackContext = new JsonContext(Full("callback"),Empty)
-
-  def suggest(value: JValue) : JValue = {
+  def suggest(value: JValue, suggestions:(String) => Seq[String]) : JValue = {
     val matches = for {
       q <- value.extractOpt[String].toList
       sug <- suggestions(q)
@@ -28,10 +24,9 @@ trait TypeAhead {
     JArray(matches)
   }
 
-  val runSuggestion =
-    SHtml.jsonCall(JsVar("query"), callbackContext, suggest _ )
+  def renderAutoCompleteScript( fieldId: String, suggestions:(String) => Seq[String]) = {
+    val callbackContext = new JsonContext(Full("callback"),Empty)
 
-  def renderAutoCompleteScript( fieldId: String) = {
     S.appendJs(Run(s"""
                      |$$('#$fieldId').typeahead({
                      |  source: askServer$fieldId,
@@ -40,6 +35,6 @@ trait TypeAhead {
                    """.stripMargin))
 
     ".js *" #> Function("askServer"+fieldId, "query" :: "callback" :: Nil,
-      Run(runSuggestion.toJsCmd))
+      Run(SHtml.jsonCall(JsVar("query"), callbackContext, (jvalue:JValue) => suggest(jvalue,suggestions) ).toJsCmd))
   }
 }

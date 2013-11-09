@@ -1,21 +1,64 @@
 package code.snippet
 
 import net.liftweb.util.Helpers._
-import net.liftweb.mapper._
 
 import net.liftweb._
 import http._
 
-import code.model.Item
 import net.liftweb.http.js.JsCmds._
 
-class AllItems extends ItemList[Item] {
-  def itemsDisplayed = Item.findAll
-  def addItem(title:String) = Item.create.title(title).save
-  def removeItem(item:Item) = item.delete_!
-  def itemLink(item: Item): String = "#"
-  def itemTitle(item: Item): String = item.title.get
-  def suggestions(typed: String): Seq[String] = Item.suggestions(typed)
+import collection.mutable
+
+object AllItems {
+
+  def renderItem(title:String) = {
+    ".link [href]" #> "#" &
+    ".title" #> title &
+    SubItems.render
+  }
+
+  def render = {
+
+    val list = mutable.ArrayBuffer.empty[String]
+
+    def itemsDisplayed = list
+    def addItem(title:String) = list += title
+    def removeItem(title:String) = list -= title
+    def suggestions(typed: String): Seq[String] = list.filter(_ contains typed)
+
+    ItemList.render[String](
+      itemsDisplayed,
+      renderItem,
+      suggestions,
+      addItem,
+      removeItem
+    )
+  }
 }
 
+object SubItems {
+
+  def renderItem(title:String) = {
+    ".link [href]" #> "#" &
+      ".title" #> title
+  }
+
+  def render = {
+
+    val list = mutable.ArrayBuffer.empty[String]
+
+    def itemsDisplayed = list
+    def addItem(title:String) = list += title
+    def removeItem(title:String) = list -= title
+    def suggestions(typed: String): Seq[String] = list.filter(_ contains typed)
+
+    ItemList.render[String](
+      itemsDisplayed,
+      renderItem,
+      suggestions,
+      addItem,
+      removeItem
+    )
+  }
+}
 

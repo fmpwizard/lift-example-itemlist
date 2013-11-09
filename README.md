@@ -8,6 +8,8 @@ Run with sbt 0.12:
 
 Then open your browser at http://localhost:8080
 
-You see 3 identical lists of items.
+In the first column you see a nested list of items.
 It should be possible to add and remove items on each list independently.
-On page reload the lists are identical again.
+
+In the second column you see some generated Ajax forms from the same template.
+They shoud work independently from each other.
